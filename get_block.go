@@ -7,7 +7,7 @@ import (
 )
 
 func GetBlockHash() (string, error) {
-	client, err := ethclient.Dial("https://mainnet.infura.io")
+	client, err := ethclient.Dial("https://beaconstate.ethstaker.cc/")
 	if err != nil {
 		return "", err
 	}
