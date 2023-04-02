@@ -1,12 +1,18 @@
 package lottery
 
 type Config struct {
+	ETHUrl string
 	Lotteryid         string
 	UserNum, PrizeNum int
 	UserID            []int64
 }
 
+var NodeUrl string
+
 func New(conf Config) ([]int64, error) {
+	if conf.ETHUrl != "" {
+		NodeUrl = conf.ETHUrl
+	}
 	userhashs := BuildHash64(conf.UserID, conf.Lotteryid)
 	userlist := IDS(userhashs)
 	blockhash, err := GetBlockHash()

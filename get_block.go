@@ -7,7 +7,12 @@ import (
 )
 
 func GetBlockHash() (string, error) {
-	client, err := ethclient.Dial("https://beaconstate.ethstaker.cc/")
+	url := "https://api.ethereum.io/v1/eth/blockNumber"
+	//"https://beaconstate.ethstaker.cc/"
+	if NodeUrl != "" {
+		url = NodeUrl
+	}
+	client, err := ethclient.Dial(url)
 	if err != nil {
 		return "", err
 	}
