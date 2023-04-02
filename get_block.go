@@ -7,8 +7,7 @@ import (
 )
 
 func GetBlockHash() (string, error) {
-	url := "https://api.ethereum.io/v1/eth/blockNumber"
-	//"https://beaconstate.ethstaker.cc/"
+	url := "https://eth.rpc.rivet.cloud/"
 	if NodeUrl != "" {
 		url = NodeUrl
 	}
