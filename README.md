@@ -3,12 +3,12 @@
 A lottery algorithm library based on the Ethereum mainnet in Golang.
 
 Usage:
-```
+```sh
 go get gopkg.in/go-dom/lottery.v1
 ```
 
 Example usage:
-```
+```golang
 package main
 
 import (
@@ -29,7 +29,7 @@ func main() {
 		72472472,
 	}
 	d, err := lottery.New(lottery.Config{
-		ETHUrl: "https://326d90b517a047aa9be8cc4770d2a871.eth.rpc.rivet.cloud/",
+		ETHUrl: "https://apikey.eth.rpc.rivet.cloud/",
 		Lotteryid: "dgub8v7bvc7",
 		UserNum: len(user),
 		PrizeNum: 2,
