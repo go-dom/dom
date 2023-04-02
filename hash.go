@@ -20,7 +20,7 @@ func BuildHashs(userid []string, lotteryid string) []string {
 }
 
 func Hash64(userid int64, lotteryid string) string {
-	return hmac.SHA512(fmt.Sprintf("%s:%s", userid, lotteryid), lotteryid)
+	return hmac.SHA512(fmt.Sprintf("%v:%s", userid, lotteryid), lotteryid)
 }
 
 func BuildHash64(userid []int64, lotteryid string) []string {
@@ -31,7 +31,7 @@ func BuildHash64(userid []int64, lotteryid string) []string {
 	return hashes
 }
 
-func IDS(hashsID []string) []int {
+func IDS(hashsID []string) []int64 {
 	IDs := make(map[string]int)
 	for i, userIDHash := range hashsID {
 		IDs[userIDHash] = i
@@ -39,9 +39,9 @@ func IDS(hashsID []string) []int {
 	sort.Slice(hashsID, func(i, j int) bool {
 		return hashsID[i] > hashsID[j]
 	})
-	userIDs := []int{}
+	userIDs := []int64{}
 	for _, userIDHash := range hashsID {
-		userIDs = append(userIDs, IDs[userIDHash])
+		userIDs = append(userIDs, int64(IDs[userIDHash]))
 	}
 	return userIDs
 }
