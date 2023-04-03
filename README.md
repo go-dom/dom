@@ -28,8 +28,8 @@ func main() {
 		23672472472,
 		72472472,
 	}
-	d, err := lottery.New(lottery.Config{
-		ETHUrl: "https://apikey.eth.rpc.rivet.cloud/",
+	d, err := lottery.New(&lottery.Config{
+		APIUrl: "https://apikey.eth.rpc.rivet.cloud/",
 		Lotteryid: "dgub8v7bvc7",
 		UserNum: len(user),
 		PrizeNum: 2,
