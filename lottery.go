@@ -1,32 +1,39 @@
 package lottery
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/3JoB/ethclient/rpc"
+)
 
 type Config struct {
 	// Example: https://eth.rpc.rivet.cloud/apikey
-	ETHUrl string
+	APIUrl string
+	ClientOption *rpc.ClientOption
 
 	Lotteryid         string
 	UserNum, PrizeNum int
 	UserID            []int64
 	Debug             bool
+
+	blockhash string
+	seed string
 }
 
 var NodeUrl string
 
-func New(conf Config) ([]int64, error) {
-	if conf.ETHUrl != "" {
-		NodeUrl = conf.ETHUrl
+func New(conf *Config) ([]int64, error) {
+	if conf.APIUrl != "" {
+		NodeUrl = conf.APIUrl
 	}
 	userhashs := BuildHash64(conf.UserID, conf.Lotteryid)
 	userlist := IDS(userhashs)
-	blockhash, err := GetBlockHash()
-	if err != nil {
+	if err := conf.GetBlockHash(); err != nil {
 		return nil, err
 	}
 
-	seed := Seeds(conf.Lotteryid, blockhash, conf.UserNum, conf.PrizeNum)
-	winners := GetUser(seed, blockhash, conf.UserNum, conf.PrizeNum)
+	conf.Seeds()
+	winners := conf.GetUser()
 
 	var winnersID []int
 	for _, winner := range winners {
@@ -54,8 +61,8 @@ func New(conf Config) ([]int64, error) {
 	if conf.Debug {
 		fmt.Printf("UserHashs: %v\n", userhashs)
 		fmt.Printf("UserList: %v\n", userlist)
-		fmt.Printf("BlockHash: %v\n", blockhash)
-		fmt.Printf("Seed: %v\n", seed)
+		fmt.Printf("BlockHash: %v\n", conf.blockhash)
+		fmt.Printf("Seed: %v\n", conf.seed)
 		fmt.Printf("Winners: %v\n", winners)
 		fmt.Printf("WinnersID: %v\n", winnersID)
 		fmt.Printf("TheWinners: %v\n", the_winners)
