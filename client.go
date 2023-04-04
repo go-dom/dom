@@ -20,10 +20,9 @@ func NewClient() *Client {
 }
 
 func (c *Client) SetUrl(url string) *Client {
-	if url == "" {
-		return c
+	if url != "" {
+		c.URL = url
 	}
-	c.URL = url
 	return c
 }
 
