@@ -5,6 +5,9 @@ go 1.20
 require (
 	github.com/3JoB/ethclient v1.0.0
 	github.com/3JoB/ulib v1.25.0
+	github.com/3JoB/ulid v0.0.1
+	github.com/google/uuid v1.3.0
+	lukechampine.com/frand v1.4.2
 )
 
 require (
@@ -31,6 +34,5 @@ require (
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
-	lukechampine.com/frand v1.4.2 // indirect
 	pgregory.net/rand v1.0.2 // indirect
 )

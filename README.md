@@ -12,8 +12,9 @@ Example usage:
 package main
 
 import (
-	"gopkg.in/go-dom/lottery.v1"
 	"fmt"
+
+	"gopkg.in/go-dom/lottery.v1"
 )
 
 func main() {
@@ -28,16 +29,22 @@ func main() {
 		23672472472,
 		72472472,
 	}
-	d, err := lottery.New(&lottery.Config{
-		APIUrl: "https://apikey.eth.rpc.rivet.cloud/",
-		Lotteryid: "dgub8v7bvc7",
-		UserNum: len(user),
+	client, err := lottery.NewClient().SetUrl("https://apikey.eth.rpc.rivet.cloud/").SetDebug().Dial()
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close()
+
+	data, err := client.NewStream(&lottery.Data{
+		UserNum:  len(user),
 		PrizeNum: 2,
-		UserID: user,
-	})
-	if err!= nil {
-        panic(err)
-    }
-	fmt.Println(d)
+		UserID:   user,
+	}).Do()
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(data)
 }
 ```

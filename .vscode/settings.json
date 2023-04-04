@@ -2,12 +2,16 @@
     "cSpell.words": [
         "blockhash",
         "ethclient",
+        "frand",
         "gopkg",
+        "hashids",
         "Hashs",
         "lotteryid",
         "lotterynum",
         "membernum",
+        "Println",
         "ulib",
+        "ulids",
         "userhashs",
         "userid",
         "userlist"
