@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/3JoB/ethclient v1.0.0
-	github.com/3JoB/ulib v1.25.0
+	github.com/3JoB/ulib v1.26.0
 	github.com/3JoB/ulid v0.0.1
 	github.com/google/uuid v1.3.0
 	lukechampine.com/frand v1.4.2
@@ -30,6 +30,7 @@ require (
 	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
