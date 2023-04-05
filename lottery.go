@@ -8,6 +8,10 @@ import (
 	"github.com/3JoB/ulib/crypt/hmac"
 )
 
+const (
+	Version string = "1.4.0"
+)
+
 type Data struct {
 	client *Client
 	d      *d
@@ -24,14 +28,17 @@ type d struct {
 	seed      string
 }
 
+// Generate lottery seed
 func (stream *Data) seeds() {
 	stream.d.seed = hmac.SHA512(fmt.Sprintf("%v:%v:%v@%v", stream.Lotteryid, stream.UserNum, stream.PrizeNum, stream.d.blockhash), stream.d.blockhash)
 }
 
+// Regenerate the lottery seed
 func (stream *Data) reSeed() {
 	stream.d.seed = hmac.SHA512(stream.d.seed, stream.d.blockhash)
 }
 
+// Get the latest block hash
 func (stream *Data) blockHash() error {
 	header, err := stream.client.Client.HeaderByNumber(context.Background(), nil)
 	if err != nil {
@@ -41,9 +48,11 @@ func (stream *Data) blockHash() error {
 	return nil
 }
 
+// 
 func (stream *Data) getUser() []int64 {
 	bigSeed, _ := new(big.Int).SetString(stream.d.seed, 16)
-	var winner []int64
+	// var winner []int64
+	winner := make([]int64, 0, stream.PrizeNum)
 	for i := 0; i < stream.PrizeNum; i++ {
 		winnerID := bigSeed.Mod(bigSeed, big.NewInt(int64(stream.UserNum))).Int64()
 		if winnerID != 0 {
@@ -63,9 +72,9 @@ func (stream *Data) Do() ([]int64, error) {
 		return nil, err
 	}
 
-	var winnersID []int
 	stream.seeds()
 	winners := stream.getUser()
+	winnersID := make([]int, 0, len(winners))
 	for _, winner := range winners {
 		for i, userID := range userlist {
 			if userID == winner {

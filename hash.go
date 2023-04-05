@@ -36,14 +36,15 @@ func (stream *Data) buildHash64() {
 }
 
 func (stream *Data) ids() []int64 {
-	IDs := make(map[string]int)
+	IDs := make(map[string]int, len(stream.d.hashids))
 	for i, userIDHash := range stream.d.hashids {
 		IDs[userIDHash] = i
 	}
 	sort.Slice(stream.d.hashids, func(i, j int) bool {
 		return stream.d.hashids[i] > stream.d.hashids[j]
 	})
-	userIDs := []int64{}
+	userIDs := make([]int64, 0, len(stream.d.hashids))
+	// userIDs := []int64{}
 	for _, userIDHash := range stream.d.hashids {
 		userIDs = append(userIDs, int64(IDs[userIDHash]))
 	}

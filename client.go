@@ -3,6 +3,7 @@ package lottery
 import (
 	"github.com/3JoB/ethclient"
 	"github.com/3JoB/ethclient/rpc"
+	errs "github.com/3JoB/ulib/err"
 )
 
 type Client struct {
@@ -60,17 +61,18 @@ func (c *Client) Close() {
 	}
 }
 
+var errDataEmpty error = &errs.Err{Op: "lottery.stream", Err: "data can not be empty!"}
+
 // Create a lottery client
-func (c *Client) NewStream(data *Data) *Data {
+func (c *Client) NewStream(data *Data) (*Data, error) {
 	if data == nil {
-		return nil
+		return nil, errDataEmpty
 	}
 	data.client = c
 	data.d = &d{}
-	return data
+	return data, nil
 }
 
-func (stream *Data) NewLotteryID() *Data {
+func (stream *Data) NewLotteryID() {
 	stream.newLotteryID()
-	return stream
 }

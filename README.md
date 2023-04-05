@@ -35,12 +35,16 @@ func main() {
 	}
 	defer client.Close()
 
-	data, err := client.NewStream(&lottery.Data{
+	session, err := client.NewStream(&lottery.Data{
 		UserNum:  len(user),
 		PrizeNum: 2,
 		UserID:   user,
-	}).Do()
+	})
+	if err != nil {
+		panic(err)
+	}
 
+	data, err := session.Do()
 	if err != nil {
 		panic(err)
 	}
@@ -48,3 +52,14 @@ func main() {
 	fmt.Println(data)
 }
 ```
+
+## Known issues
+
+**These issues are only sporadic and require developers to verify themselves. For example, retry when a problem occurs.**
+
+- Sometimes, some UserID will win continuously.
+- Sometimes there will be fewer winners than the set number of prizes.
+
+
+# License
+This software is distributed under GNU Affero General Public License v3.0 license.
