@@ -7,10 +7,10 @@ import (
 )
 
 type Client struct {
-	URL    string // ETH API Address
+	URL    string            // ETH API Address
 	Option *rpc.ClientOption // ETH client additional settings
 	Client *ethclient.Client // ETH client
-	Debug  bool // Debug Mode
+	Debug  bool              // Debug Mode
 }
 
 // Initialize an client

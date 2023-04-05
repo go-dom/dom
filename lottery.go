@@ -16,9 +16,9 @@ type Session struct {
 	client *Client
 	d      *d
 
-	Lotteryid string // Lottery ID, if there is no one, you can call `NewLotteryID()` to generate one.
-	UserNum   int // Number of participants
-	PrizeNum  int // Quantity of prizes
+	Lotteryid string  // Lottery ID, if there is no one, you can call `NewLotteryID()` to generate one.
+	UserNum   int     // Number of participants
+	PrizeNum  int     // Quantity of prizes
 	UserID    []int64 // All user IDs participating in the sweepstakes
 }
 
@@ -48,7 +48,6 @@ func (session *Session) blockHash() error {
 	return nil
 }
 
-// 
 func (session *Session) getUser() []int64 {
 	bigSeed, _ := new(big.Int).SetString(session.d.seed, 16)
 	// var winner []int64
