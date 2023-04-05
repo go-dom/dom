@@ -12,14 +12,14 @@ const (
 	Version string = "1.4.0"
 )
 
-type Data struct {
+type Session struct {
 	client *Client
 	d      *d
 
-	Lotteryid string
+	Lotteryid string // Lottery ID, if there is no one, you can call `NewLotteryID()` to generate one.
 	UserNum   int // Number of participants
 	PrizeNum  int // Quantity of prizes
-	UserID    []int64
+	UserID    []int64 // All user IDs participating in the sweepstakes
 }
 
 type d struct {
@@ -29,51 +29,54 @@ type d struct {
 }
 
 // Generate lottery seed
-func (stream *Data) seeds() {
-	stream.d.seed = hmac.SHA512(fmt.Sprintf("%v:%v:%v@%v", stream.Lotteryid, stream.UserNum, stream.PrizeNum, stream.d.blockhash), stream.d.blockhash)
+func (session *Session) seeds() {
+	session.d.seed = hmac.SHA512(fmt.Sprintf("%v:%v:%v@%v", session.Lotteryid, session.UserNum, session.PrizeNum, session.d.blockhash), session.d.blockhash)
 }
 
 // Regenerate the lottery seed
-func (stream *Data) reSeed() {
-	stream.d.seed = hmac.SHA512(stream.d.seed, stream.d.blockhash)
+func (session *Session) reSeed() {
+	session.d.seed = hmac.SHA512(session.d.seed, session.d.blockhash)
 }
 
 // Get the latest block hash
-func (stream *Data) blockHash() error {
-	header, err := stream.client.Client.HeaderByNumber(context.Background(), nil)
+func (session *Session) blockHash() error {
+	header, err := session.client.Client.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		return err
 	}
-	stream.d.blockhash = header.Hash().Hex()
+	session.d.blockhash = header.Hash().Hex()
 	return nil
 }
 
 // 
-func (stream *Data) getUser() []int64 {
-	bigSeed, _ := new(big.Int).SetString(stream.d.seed, 16)
+func (session *Session) getUser() []int64 {
+	bigSeed, _ := new(big.Int).SetString(session.d.seed, 16)
 	// var winner []int64
-	winner := make([]int64, 0, stream.PrizeNum)
-	for i := 0; i < stream.PrizeNum; i++ {
-		winnerID := bigSeed.Mod(bigSeed, big.NewInt(int64(stream.UserNum))).Int64()
+	winner := make([]int64, 0, session.PrizeNum)
+	for i := 0; i < session.PrizeNum; i++ {
+		winnerID := bigSeed.Mod(bigSeed, big.NewInt(int64(session.UserNum))).Int64()
 		if winnerID != 0 {
 			winner = append(winner, winnerID)
-			stream.reSeed()
-			bigSeed, _ = new(big.Int).SetString(stream.d.seed, 16)
+			session.reSeed()
+			bigSeed, _ = new(big.Int).SetString(session.d.seed, 16)
 		}
 	}
 	return winner
 }
 
 // Calculation draw results
-func (stream *Data) Do() ([]int64, error) {
-	stream.buildHash64()
-	userlist := stream.ids()
-	if err := stream.blockHash(); err != nil {
+func (session *Session) Do() ([]int64, error) {
+	if session.Lotteryid == "" {
+		session.NewLotteryID()
+	}
+	session.buildHash64()
+	userlist := session.ids()
+	if err := session.blockHash(); err != nil {
 		return nil, err
 	}
 
-	stream.seeds()
-	winners := stream.getUser()
+	session.seeds()
+	winners := session.getUser()
 	winnersID := make([]int, 0, len(winners))
 	for _, winner := range winners {
 		for i, userID := range userlist {
@@ -84,23 +87,23 @@ func (stream *Data) Do() ([]int64, error) {
 		}
 	}
 
-	the_winners := make([]int64, 0, stream.PrizeNum)
+	the_winners := make([]int64, 0, session.PrizeNum)
 	for _, winnerID := range winnersID {
-		if stream.hash64(stream.UserID[winnerID]) == stream.d.hashids[winnerID] {
-			the_winners = append(the_winners, stream.UserID[winnerID])
+		if session.hash64(session.UserID[winnerID]) == session.d.hashids[winnerID] {
+			the_winners = append(the_winners, session.UserID[winnerID])
 		} else {
-			for _, t := range stream.UserID {
-				if stream.hash64(t) == stream.d.hashids[winnerID] {
-					the_winners = append(the_winners, stream.UserID[winnerID])
+			for _, t := range session.UserID {
+				if session.hash64(t) == session.d.hashids[winnerID] {
+					the_winners = append(the_winners, session.UserID[winnerID])
 					break
 				}
 			}
 		}
 	}
 
-	if stream.client.Debug {
-		fmt.Printf("UserHashs: %v\nUserList: %v\n", stream.d.hashids, userlist)
-		fmt.Printf("BlockHash: %v\nSeed: %v\n", stream.d.blockhash, stream.d.seed)
+	if session.client.Debug {
+		fmt.Printf("UserHashs: %v\nUserList: %v\n", session.d.hashids, userlist)
+		fmt.Printf("BlockHash: %v\nSeed: %v\n", session.d.blockhash, session.d.seed)
 		fmt.Printf("Winners: %v\nWinnersID: %v\nTheWinners: %v\n", winners, winnersID, the_winners)
 	}
 

@@ -7,10 +7,10 @@ import (
 )
 
 type Client struct {
-	URL    string
-	Option *rpc.ClientOption
-	Client *ethclient.Client
-	Debug  bool
+	URL    string // ETH API Address
+	Option *rpc.ClientOption // ETH client additional settings
+	Client *ethclient.Client // ETH client
+	Debug  bool // Debug Mode
 }
 
 // Initialize an client
@@ -20,6 +20,7 @@ func NewClient() *Client {
 	}
 }
 
+// Set the ETH API address
 func (c *Client) SetUrl(url string) *Client {
 	if url != "" {
 		c.URL = url
@@ -27,6 +28,7 @@ func (c *Client) SetUrl(url string) *Client {
 	return c
 }
 
+// Set Debug mode
 func (c *Client) SetDebug() *Client {
 	if c.Debug {
 		c.Debug = false
@@ -36,6 +38,7 @@ func (c *Client) SetDebug() *Client {
 	return c
 }
 
+// Set ETH client additional settings
 func (c *Client) SetClientOption(option *rpc.ClientOption) *Client {
 	if option != nil {
 		c.Option = option
@@ -61,18 +64,18 @@ func (c *Client) Close() {
 	}
 }
 
-var errDataEmpty error = &errs.Err{Op: "lottery.stream", Err: "data can not be empty!"}
+var errDataEmpty error = &errs.Err{Op: "lottery.session", Err: "data can not be empty!"}
 
-// Create a lottery client
-func (c *Client) NewStream(data *Data) (*Data, error) {
-	if data == nil {
+// Create a lottery Session
+func (c *Client) NewSession(sessionData *Session) (*Session, error) {
+	if sessionData == nil {
 		return nil, errDataEmpty
 	}
-	data.client = c
-	data.d = &d{}
-	return data, nil
+	sessionData.client = c
+	sessionData.d = &d{}
+	return sessionData, nil
 }
 
-func (stream *Data) NewLotteryID() {
-	stream.newLotteryID()
+func (session *Session) NewLotteryID() {
+	session.newLotteryID()
 }
