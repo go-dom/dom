@@ -1,15 +1,17 @@
-package lottery
+package dom
 
 import (
 	"context"
 	"fmt"
 	"math/big"
 
-	"github.com/3JoB/ulib/crypt/hmac"
+	"github.com/3JoB/ulib/hash/hmac"
+	"github.com/3JoB/ulib/litefmt"
+	"github.com/3JoB/unsafeConvert"
 )
 
 const (
-	Version string = "1.4.0"
+	Version string = "1.5.0"
 )
 
 type Session struct {
@@ -30,12 +32,12 @@ type d struct {
 
 // Generate lottery seed
 func (session *Session) seeds() {
-	session.d.seed = hmac.SHA512(fmt.Sprintf("%v:%v:%v@%v", session.Lotteryid, session.UserNum, session.PrizeNum, session.d.blockhash), session.d.blockhash)
+	session.d.seed = hmac.SHA3_512S(litefmt.Sprint(session.Lotteryid, ":", unsafeConvert.IntToString(session.UserNum), ":", unsafeConvert.IntToString(session.PrizeNum), "@", session.d.blockhash), session.d.blockhash).Hex()
 }
 
 // Regenerate the lottery seed
 func (session *Session) reSeed() {
-	session.d.seed = hmac.SHA512(session.d.seed, session.d.blockhash)
+	session.d.seed = hmac.SHA3_512S(session.d.seed, session.d.blockhash).Hex()
 }
 
 // Get the latest block hash
@@ -88,11 +90,11 @@ func (session *Session) Do() ([]int64, error) {
 
 	the_winners := make([]int64, 0, session.PrizeNum)
 	for _, winnerID := range winnersID {
-		if session.hash64(session.UserID[winnerID]) == session.d.hashids[winnerID] {
+		if session.hash(session.UserID[winnerID]) == session.d.hashids[winnerID] {
 			the_winners = append(the_winners, session.UserID[winnerID])
 		} else {
 			for _, t := range session.UserID {
-				if session.hash64(t) == session.d.hashids[winnerID] {
+				if session.hash(t) == session.d.hashids[winnerID] {
 					the_winners = append(the_winners, session.UserID[winnerID])
 					break
 				}

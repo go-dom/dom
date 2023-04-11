@@ -1,4 +1,4 @@
-package lottery
+package dom
 
 import (
 	"github.com/3JoB/ethclient"

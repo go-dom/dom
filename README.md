@@ -1,8 +1,15 @@
-# go-lottery
+# go-dom
 
 A lottery algorithm library based on the Ethereum mainnet in Golang.
 
+1.5+
+
 Usage:
+```sh
+go get gopkg.in/dom.v1
+```
+
+1.5-
 ```sh
 go get gopkg.in/go-dom/lottery.v1
 ```
@@ -14,7 +21,7 @@ package main
 import (
 	"fmt"
 
-	"gopkg.in/go-dom/lottery.v1"
+	"gopkg.in/dom.v1"
 )
 
 func main() {
@@ -29,7 +36,7 @@ func main() {
 		23672472472,
 		72472472,
 	}
-	client, err := lottery.NewClient().SetUrl("https://apikey.eth.rpc.rivet.cloud/").SetDebug().Dial()
+	client, err := dom.NewClient().SetUrl("https://apikey.eth.rpc.rivet.cloud/").SetDebug().Dial()
 	if err != nil {
 		panic(err)
 	}

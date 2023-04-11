@@ -1,12 +1,13 @@
-package lottery
+package dom
 
 import (
-	"fmt"
 	"sort"
 	"time"
 
-	"github.com/3JoB/ulib/crypt/hmac"
+	"github.com/3JoB/ulib/hash/hmac"
+	"github.com/3JoB/ulib/litefmt"
 	"github.com/3JoB/ulid"
+	"github.com/3JoB/unsafeConvert"
 	"github.com/google/uuid"
 	"lukechampine.com/frand"
 )
@@ -19,19 +20,19 @@ func (session *Session) newLotteryID() {
 	} else {
 		ulids = id.String()
 	}
-	session.Lotteryid = hmac.SHA512(fmt.Sprintf("%v$%v", uuid.NewString(), uuid.NewString()), ulids)
+	session.Lotteryid = hmac.SHA3_512S(litefmt.Sprint(uuid.NewString(), "$", uuid.NewString()), ulids).Hex()
 }
 
 // Calculate user hash
-func (session *Session) hash64(userid int64) string {
-	return hmac.SHA512(fmt.Sprintf("%v@%s", userid, session.Lotteryid), session.Lotteryid)
+func (session *Session) hash(userid int64) string {
+	return hmac.SHA3_512S(litefmt.Sprint(unsafeConvert.Int64ToString(userid), "@", session.Lotteryid), session.Lotteryid).Hex()
 }
 
 // Calculate user hash
 func (session *Session) buildHash64() {
 	session.d.hashids = make([]string, 0, len(session.UserID))
 	for _, userid := range session.UserID {
-		session.d.hashids = append(session.d.hashids, session.hash64(userid))
+		session.d.hashids = append(session.d.hashids, session.hash(userid))
 	}
 }
 

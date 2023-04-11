@@ -6,6 +6,7 @@
         "gopkg",
         "hashids",
         "Hashs",
+        "litefmt",
         "lotteryid",
         "lotterynum",
         "membernum",
