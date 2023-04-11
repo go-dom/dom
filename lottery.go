@@ -98,7 +98,7 @@ Retrys:
 		session.getUser()
 		retry++
 		goto Retrys
-	} else if session.d.winnernum < session.PrizeNum {
+	} else if session.d.winnernum != session.PrizeNum {
 		session.getUser()
 		retry++
 		goto Retrys
