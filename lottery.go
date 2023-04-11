@@ -78,6 +78,9 @@ func (session *Session) Do() ([]int64, error) {
 
 	session.seeds()
 	winners := session.getUser()
+	if len(winners) == 0 {
+		winners = session.getUser()
+	}
 	winnersID := make([]int, 0, len(winners))
 	for _, winner := range winners {
 		for i, userID := range userlist {
@@ -101,6 +104,7 @@ func (session *Session) Do() ([]int64, error) {
 			}
 		}
 	}
+
 
 	if session.client.Debug {
 		fmt.Printf("UserHashs: %v\nUserList: %v\n", session.d.hashids, userlist)
