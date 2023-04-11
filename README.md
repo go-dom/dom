@@ -43,7 +43,6 @@ func main() {
 	defer client.Close()
 
 	session, err := client.NewSession(&lottery.Session{
-		UserNum:  len(user),
 		PrizeNum: 2,
 		UserID:   user,
 	})

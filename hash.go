@@ -30,7 +30,7 @@ func (session *Session) hash(userid int64) string {
 
 // Calculate user hash
 func (session *Session) buildHash64() {
-	session.d.hashids = make([]string, 0, len(session.UserID))
+	session.d.hashids = make([]string, 0, session.UserNum)
 	for _, userid := range session.UserID {
 		session.d.hashids = append(session.d.hashids, session.hash(userid))
 	}

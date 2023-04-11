@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"sort"
 
 	errs "github.com/3JoB/ulib/err"
 	"github.com/3JoB/ulib/hash/hmac"
@@ -12,7 +13,7 @@ import (
 )
 
 const (
-	Version string = "1.5.0"
+	Version string = "1.6.0"
 )
 
 type Session struct {
@@ -55,21 +56,50 @@ func (session *Session) blockHash() error {
 
 func (session *Session) getUser() {
 	bigSeed, _ := new(big.Int).SetString(session.d.seed, 16)
-	// var winner []int64
 	session.d.winners = make([]int64, 0, session.PrizeNum)
 	for i := 0; i < session.PrizeNum; i++ {
-		winnerID := bigSeed.Mod(bigSeed, big.NewInt(int64(session.UserNum))).Int64()
-		if winnerID != 0 {
-			session.d.winners = append(session.d.winners, winnerID)
-			session.reSeed()
-			bigSeed, _ = new(big.Int).SetString(session.d.seed, 16)
+		winnerID := bigSeed.Mod(bigSeed, big.NewInt(int64(session.UserNum))).Int64() + 1
+		fmt.Println(winnerID - 1)
+		if session.winHas(winnerID-1){
+			i--
+		} else if winnerID != 0 {
+			session.d.winners = append(session.d.winners, winnerID-1)
 		}
+		session.reSeed()
+		bigSeed, _ = new(big.Int).SetString(session.d.seed, 16)
+	}
+	if session.isHas() {
+		session.getUser()
 	}
 	session.d.winnernum = len(session.d.winners)
 }
 
+func (session *Session) isHas() bool {
+	m := make(map[int64]int)
+	for _, val := range session.d.winners {
+		m[val]++
+	}
+
+	for _, value := range m {
+		if value > 1 {
+			return true
+		}
+	}
+	return false
+}
+
+func (session *Session) winHas(id int64) bool {
+	index := sort.Search(len(session.d.winners), func(i int) bool { return session.d.winners[i] >= id })
+	if index < len(session.d.winners) && session.d.winners[index] == id {
+		return true
+	}
+	return false
+}
+
 var ErrLess error = &errs.Err{Op: "dom", Err: "The number of prizes cannot be less than the number of participants!"}
 var ErrMoreRetry error = &errs.Err{Op: "dom", Err: "Unable to correctly generate winnerid, and too many retries, this operation has been terminated."}
+var ErrPrizeNum error = &errs.Err{Op: "dom", Err: "TIncorrect number of prizes"}
+var ErrUserNum error = &errs.Err{Op: "dom", Err: "Incorrect number of users"}
 
 // Calculation draw results
 func (session *Session) Do() ([]int64, error) {
@@ -78,6 +108,12 @@ func (session *Session) Do() ([]int64, error) {
 	}
 	if session.PrizeNum >= session.UserNum {
 		return nil, ErrLess
+	}
+	if session.PrizeNum < 1 {
+		return nil, ErrPrizeNum
+	}
+	if session.UserNum < 1 {
+		return nil, ErrUserNum
 	}
 	session.buildHash64()
 	userlist := session.ids()
@@ -90,7 +126,11 @@ func (session *Session) Do() ([]int64, error) {
 	retry := 0
 
 Retrys:
-	if retry > 6 {
+	if retry > 4 {
+		if session.client.Debug {
+			fmt.Printf("UserHashs: %v\nUserList: %v\n", session.d.hashids, userlist)
+			fmt.Printf("BlockHash: %v\nSeed: %v\n", session.d.blockhash, session.d.seed)
+		}
 		return nil, ErrMoreRetry
 	}
 

@@ -73,6 +73,7 @@ func (c *Client) NewSession(sessionData *Session) (*Session, error) {
 	}
 	sessionData.client = c
 	sessionData.d = &d{}
+	sessionData.UserNum = len(sessionData.UserID)
 	return sessionData, nil
 }
 
