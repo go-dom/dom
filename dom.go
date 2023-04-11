@@ -59,7 +59,6 @@ func (session *Session) getUser() {
 	session.d.winners = make([]int64, 0, session.PrizeNum)
 	for i := 0; i < session.PrizeNum; i++ {
 		winnerID := bigSeed.Mod(bigSeed, big.NewInt(int64(session.UserNum))).Int64() + 1
-		fmt.Println(winnerID - 1)
 		if session.winHas(winnerID-1){
 			i--
 		} else if winnerID != 0 {
