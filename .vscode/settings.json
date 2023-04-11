@@ -15,6 +15,7 @@
         "ulids",
         "userhashs",
         "userid",
-        "userlist"
+        "userlist",
+        "winum"
     ]
 }

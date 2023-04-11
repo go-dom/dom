@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 
+	errs "github.com/3JoB/ulib/err"
 	"github.com/3JoB/ulib/hash/hmac"
 	"github.com/3JoB/ulib/litefmt"
 	"github.com/3JoB/unsafeConvert"
@@ -65,10 +66,15 @@ func (session *Session) getUser() []int64 {
 	return winner
 }
 
+var ErrLess error = &errs.Err{Op: "dom", Err: "The number of prizes cannot be less than the number of participants!"}
+
 // Calculation draw results
 func (session *Session) Do() ([]int64, error) {
 	if session.Lotteryid == "" {
 		session.NewLotteryID()
+	}
+	if session.PrizeNum >= session.UserNum {
+		return nil, ErrLess
 	}
 	session.buildHash64()
 	userlist := session.ids()
@@ -78,7 +84,10 @@ func (session *Session) Do() ([]int64, error) {
 
 	session.seeds()
 	winners := session.getUser()
-	if len(winners) == 0 {
+	winum := len(winners)
+	if winum == 0 {
+		winners = session.getUser()
+	} else if winum < session.PrizeNum {
 		winners = session.getUser()
 	}
 	winnersID := make([]int, 0, len(winners))
