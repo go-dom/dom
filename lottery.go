@@ -29,6 +29,8 @@ type d struct {
 	hashids   []string
 	blockhash string
 	seed      string
+	winners   []int64
+	winnernum int
 }
 
 // Generate lottery seed
@@ -51,22 +53,23 @@ func (session *Session) blockHash() error {
 	return nil
 }
 
-func (session *Session) getUser() []int64 {
+func (session *Session) getUser() {
 	bigSeed, _ := new(big.Int).SetString(session.d.seed, 16)
 	// var winner []int64
-	winner := make([]int64, 0, session.PrizeNum)
+	session.d.winners = make([]int64, 0, session.PrizeNum)
 	for i := 0; i < session.PrizeNum; i++ {
 		winnerID := bigSeed.Mod(bigSeed, big.NewInt(int64(session.UserNum))).Int64()
 		if winnerID != 0 {
-			winner = append(winner, winnerID)
+			session.d.winners = append(session.d.winners, winnerID)
 			session.reSeed()
 			bigSeed, _ = new(big.Int).SetString(session.d.seed, 16)
 		}
 	}
-	return winner
+	session.d.winnernum = len(session.d.winners)
 }
 
 var ErrLess error = &errs.Err{Op: "dom", Err: "The number of prizes cannot be less than the number of participants!"}
+var ErrMoreRetry error = &errs.Err{Op: "dom", Err: "Unable to correctly generate winnerid, and too many retries, this operation has been terminated."}
 
 // Calculation draw results
 func (session *Session) Do() ([]int64, error) {
@@ -83,15 +86,28 @@ func (session *Session) Do() ([]int64, error) {
 	}
 
 	session.seeds()
-	winners := session.getUser()
-	winum := len(winners)
-	if winum == 0 {
-		winners = session.getUser()
-	} else if winum < session.PrizeNum {
-		winners = session.getUser()
+	session.getUser()
+	retry := 0
+
+Retrys:
+	if retry > 6 {
+		return nil, ErrMoreRetry
 	}
-	winnersID := make([]int, 0, len(winners))
-	for _, winner := range winners {
+
+	if session.d.winnernum == 0 {
+		session.getUser()
+		retry++
+		goto Retrys
+	} else if session.d.winnernum < session.PrizeNum {
+		session.getUser()
+		retry++
+		goto Retrys
+	}
+
+	retry = 0
+
+	winnersID := make([]int, 0, session.d.winnernum)
+	for _, winner := range session.d.winners {
 		for i, userID := range userlist {
 			if userID == winner {
 				winnersID = append(winnersID, i)
@@ -114,11 +130,10 @@ func (session *Session) Do() ([]int64, error) {
 		}
 	}
 
-
 	if session.client.Debug {
 		fmt.Printf("UserHashs: %v\nUserList: %v\n", session.d.hashids, userlist)
 		fmt.Printf("BlockHash: %v\nSeed: %v\n", session.d.blockhash, session.d.seed)
-		fmt.Printf("Winners: %v\nWinnersID: %v\nTheWinners: %v\n", winners, winnersID, the_winners)
+		fmt.Printf("Winners: %v\nWinnersID: %v\nTheWinners: %v\n", session.d.winners, winnersID, the_winners)
 	}
 
 	return the_winners, nil

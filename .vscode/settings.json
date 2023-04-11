@@ -11,11 +11,14 @@
         "lotterynum",
         "membernum",
         "Println",
+        "Retrys",
         "ulib",
         "ulids",
         "userhashs",
         "userid",
         "userlist",
+        "winnerid",
+        "winnernum",
         "winum"
     ]
 }
