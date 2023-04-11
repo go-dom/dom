@@ -3,7 +3,6 @@ package dom
 import (
 	"github.com/3JoB/ethclient"
 	"github.com/3JoB/ethclient/rpc"
-	errs "github.com/3JoB/ulib/err"
 )
 
 type Client struct {
@@ -64,12 +63,10 @@ func (c *Client) Close() {
 	}
 }
 
-var errDataEmpty error = &errs.Err{Op: "lottery.session", Err: "data can not be empty!"}
-
 // Create a lottery Session
 func (c *Client) NewSession(sessionData *Session) (*Session, error) {
 	if sessionData == nil {
-		return nil, errDataEmpty
+		return nil, ErrDataEmpty
 	}
 	sessionData.client = c
 	sessionData.d = &d{}
