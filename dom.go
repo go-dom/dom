@@ -20,7 +20,7 @@ type UserResults struct {
 	UserHash string `json:"user_hash"`
 }
 
-const Version string = "1.6.0"
+const Version string = "2.0.0"
 
 var ErrDataEmpty error = &errs.Err{Op: "dom", Err: "data can not be empty!"}
 var ErrLess error = &errs.Err{Op: "dom", Err: "The number of prizes cannot be less than the number of participants!"}
