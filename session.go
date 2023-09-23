@@ -4,8 +4,9 @@ import (
 	"context"
 	"math/big"
 	"sort"
+	"strings"
 
-	"github.com/3JoB/ulib/hash/hmac"
+	"github.com/3JoB/ulib/hash"
 	"github.com/3JoB/ulib/litefmt"
 	"github.com/3JoB/unsafeConvert"
 )
@@ -14,10 +15,11 @@ type Session struct {
 	client *Client
 	d      *d
 
-	Lotteryid string  // Lottery ID, if there is no one, you can call `NewLotteryID()` to generate one.
-	UserNum   int     // Number of participants
-	PrizeNum  int     // Quantity of prizes
-	UserID    []int64 // All user IDs participating in the sweepstakes
+	Lotteryid string // Lottery ID, if there is no one, you can call `NewLotteryID()` to generate one.
+	UserNum   int    // Number of participants
+	PrizeNum  int
+	Prize     []string // Quantity of prizes
+	UserID    []int64  // All user IDs participating in the sweepstakes
 }
 
 type d struct {
@@ -30,12 +32,18 @@ type d struct {
 
 // Generate lottery seed
 func (session *Session) seeds() {
-	session.d.seed = hmac.SHA3_512S(litefmt.Sprint(session.Lotteryid, ":", unsafeConvert.IntToString(session.UserNum), ":", unsafeConvert.IntToString(session.PrizeNum), "@", session.d.blockhash), session.d.blockhash).Hex()
+	data := litefmt.PSprint(
+		session.Lotteryid,
+		unsafeConvert.Itoa(session.PrizeNum),
+		strings.Join(session.Prize, ","),
+		session.d.blockhash,
+	)
+	session.d.seed = hash.SHA3_512S(data).Hex()
 }
 
 // Regenerate the lottery seed
 func (session *Session) reSeed() {
-	session.d.seed = hmac.SHA3_512S(session.d.seed, session.d.blockhash).Hex()
+	session.d.seed = hash.SHA3_512S(session.d.seed).Hex()
 }
 
 // Get the latest block hash
@@ -56,7 +64,7 @@ func (session *Session) getUser() {
 		if session.winHas(winnerID - 1) {
 			i--
 		} else if winnerID != 0 {
-			session.d.winners = append(session.d.winners, winnerID-1)
+			session.d.winners= append(session.d.winners, winnerID)
 		}
 		session.reSeed()
 		bigSeed, _ = new(big.Int).SetString(session.d.seed, 16)

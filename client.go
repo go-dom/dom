@@ -27,24 +27,6 @@ func (c *Client) SetUrl(url string) *Client {
 	return c
 }
 
-// Set Debug mode
-func (c *Client) SetDebug() *Client {
-	if c.Debug {
-		c.Debug = false
-	} else {
-		c.Debug = true
-	}
-	return c
-}
-
-// Set ETH client additional settings
-func (c *Client) SetClientOption(option *rpc.ClientOption) *Client {
-	if option != nil {
-		c.Option = option
-	}
-	return c
-}
-
 // Create API connection
 func (c *Client) Dial() (*Client, error) {
 	var err error
