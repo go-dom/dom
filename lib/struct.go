@@ -8,19 +8,19 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-type LotteryData struct {
+type LotteryData[E []T, T string | int64] struct {
 	LotteryID string
-	UserIDs   []string
+	UserIDs   E
 	PrizeList []string
 	BlockHash string
 }
 
-type WinnerPrizePair struct {
-	Winner string
+type WinnerPrizePair[T string | int64] struct {
+	Winner T
 	Prize  string
 }
 
-func calculateInitialSeed(data LotteryData) string {
+func (data LotteryData[E, T]) calculateInitialSeed() string {
 	seedData := data.LotteryID + unsafeConvert.Itoa(len(data.UserIDs)) +
 		unsafeConvert.Itoa(len(data.PrizeList)) + data.BlockHash
 
@@ -31,17 +31,18 @@ func calculateInitialSeed(data LotteryData) string {
 	return hex.EncodeToString(seedHash[:])
 }
 
-func calculateWinners(seed string, data LotteryData) []WinnerPrizePair {
+func (data LotteryData[E, T]) calculateWinners(seed string) []WinnerPrizePair[T] {
 	seedBigInt, _ := new(big.Int).SetString(seed, 16)
 	num := big.NewInt(int64(len(data.UserIDs)))
 
-	var winners []string
+	var winners E
 	for i := 0; i < len(data.PrizeList); i++ {
-		winner := ""
+		var winner T
 		for {
 			index := seedBigInt.Mod(seedBigInt, num).Int64()
 			winner = data.UserIDs[index]
-			if !isWinner(winner, winners) {
+			sortUserIDs(winners)
+			if !data.isWinner(winner, winners) {
 				break
 			}
 			sha := sha3.New512()
@@ -54,10 +55,10 @@ func calculateWinners(seed string, data LotteryData) []WinnerPrizePair {
 		winners = append(winners, winner)
 	}
 
-	var pairs []WinnerPrizePair
+	var pairs []WinnerPrizePair[T]
 
 	for i, winner := range winners {
-		pair := WinnerPrizePair{
+		pair := WinnerPrizePair[T]{
 			Winner: winner,
 			Prize:  data.PrizeList[i],
 		}
@@ -67,20 +68,15 @@ func calculateWinners(seed string, data LotteryData) []WinnerPrizePair {
 	return pairs
 }
 
-func isWinner(winner string, winners []string) bool {
-	for _, w := range winners {
-		if w == winner {
-			return true
-		}
-	}
-	return false
+func (data LotteryData[E, T]) isWinner(winner T, winners E) bool {
+	return sortSearch(winners, winner)
 }
 
-func DrawLottery(data LotteryData) []WinnerPrizePair {
+func (data LotteryData[E, T]) DrawLottery() []WinnerPrizePair[T] {
 	if len(data.UserIDs) < len(data.PrizeList)*2 {
 		return nil
 	}
 	sortUserIDs(data.UserIDs)
-	initialSeed := calculateInitialSeed(data)
-	return calculateWinners(initialSeed, data)
+	initialSeed := data.calculateInitialSeed()
+	return data.calculateWinners(initialSeed)
 }
