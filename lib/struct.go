@@ -1,9 +1,9 @@
 package dom
 
 import (
-	"encoding/hex"
 	"math/big"
 
+	"github.com/3JoB/ulib/hex"
 	"github.com/3JoB/unsafeConvert"
 	"golang.org/x/crypto/sha3"
 )
@@ -14,6 +14,7 @@ type LotteryData struct {
 	PrizeList []string
 	BlockHash string
 }
+
 type WinnerPrizePair struct {
 	Winner string
 	Prize  string
@@ -24,7 +25,7 @@ func calculateInitialSeed(data LotteryData) string {
 		unsafeConvert.Itoa(len(data.PrizeList)) + data.BlockHash
 
 	sha := sha3.New512()
-	sha.Write([]byte(seedData))
+	sha.Write(unsafeConvert.ByteSlice(seedData))
 	seedHash := sha.Sum(nil)
 
 	return hex.EncodeToString(seedHash[:])
@@ -43,9 +44,8 @@ func calculateWinners(seed string, data LotteryData) []WinnerPrizePair {
 			if !isWinner(winner, winners) {
 				break
 			}
-			
 			sha := sha3.New512()
-			sha.Write([]byte(seed))
+			sha.Write(unsafeConvert.ByteSlice(seed))
 			hash := sha.Sum(nil)
 			seed = hex.EncodeToString(hash[:])
 
