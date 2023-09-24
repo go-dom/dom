@@ -36,15 +36,22 @@ func calculateWinners(seed string, data LotteryData) []WinnerPrizePair {
 
 	var winners []string
 	for i := 0; i < len(data.PrizeList); i++ {
-		index := seedBigInt.Mod(seedBigInt, num).Int64()
-		winner := data.UserIDs[index]
-		winners = append(winners, winner)
-		sha := sha3.New512()
-		sha.Write([]byte(seed))
-		hash := sha.Sum(nil)
-		seed = hex.EncodeToString(hash[:])
+		winner := ""
+		for {
+			index := seedBigInt.Mod(seedBigInt, num).Int64()
+			winner = data.UserIDs[index]
+			if !isWinner(winner, winners) {
+				break
+			}
+			
+			sha := sha3.New512()
+			sha.Write([]byte(seed))
+			hash := sha.Sum(nil)
+			seed = hex.EncodeToString(hash[:])
 
-		seedBigInt.SetString(seed, 16)
+			seedBigInt.SetString(seed, 16)
+		}
+		winners = append(winners, winner)
 	}
 
 	var pairs []WinnerPrizePair
@@ -60,7 +67,19 @@ func calculateWinners(seed string, data LotteryData) []WinnerPrizePair {
 	return pairs
 }
 
+func isWinner(winner string, winners []string) bool {
+	for _, w := range winners {
+		if w == winner {
+			return true
+		}
+	}
+	return false
+}
+
 func DrawLottery(data LotteryData) []WinnerPrizePair {
+	if len(data.UserIDs) < len(data.PrizeList)*2 {
+		return nil
+	}
 	sortUserIDs(data.UserIDs)
 	initialSeed := calculateInitialSeed(data)
 	return calculateWinners(initialSeed, data)
