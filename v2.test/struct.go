@@ -30,12 +30,12 @@ func calculateInitialSeed(data LotteryData) string {
 }
 
 func calculateWinners(seed string, data LotteryData) []WinnerPrizePair {
-	seedBigInt := new(big.Int)
-	seedBigInt.SetString(seed, 16)
+	seedBigInt, _ := new(big.Int).SetString(seed, 16)
+	num := big.NewInt(int64(len(data.UserIDs)))
 
 	var winners []string
 	for i := 0; i < len(data.PrizeList); i++ {
-		index := seedBigInt.Mod(seedBigInt, big.NewInt(int64(len(data.UserIDs)))).Int64()
+		index := seedBigInt.Mod(seedBigInt, num).Int64()
 		winner := data.UserIDs[index]
 		winners = append(winners, winner)
 		sha := sha3.New512()
