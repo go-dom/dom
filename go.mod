@@ -1,4 +1,4 @@
-module gopkg.in/dom.v1
+module gopkg.in/dom.v2
 
 go 1.21.1
 
@@ -8,6 +8,8 @@ require (
 	github.com/3JoB/ulid v0.0.2
 	github.com/3JoB/unsafeConvert v1.6.0
 	github.com/google/uuid v1.3.0
+	golang.org/x/crypto v0.12.0
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	lukechampine.com/frand v1.4.2
 )
 
@@ -48,11 +50,9 @@ require (
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
-	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	pgregory.net/rand v1.0.2 // indirect

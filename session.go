@@ -64,7 +64,7 @@ func (session *Session) getUser() {
 		if session.winHas(winnerID - 1) {
 			i--
 		} else if winnerID != 0 {
-			session.d.winners= append(session.d.winners, winnerID)
+			session.d.winners = append(session.d.winners, winnerID)
 		}
 		session.reSeed()
 		bigSeed, _ = new(big.Int).SetString(session.d.seed, 16)
