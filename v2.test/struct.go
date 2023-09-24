@@ -1,11 +1,10 @@
 package dom
 
 import (
-	"crypto/sha512"
 	"encoding/hex"
 	"math/big"
-	"strconv"
 
+	"github.com/3JoB/unsafeConvert"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -21,10 +20,12 @@ type WinnerPrizePair struct {
 }
 
 func calculateInitialSeed(data LotteryData) string {
-	seedData := data.LotteryID + strconv.Itoa(len(data.UserIDs)) +
-		strconv.Itoa(len(data.PrizeList)) + data.BlockHash
+	seedData := data.LotteryID + unsafeConvert.Itoa(len(data.UserIDs)) +
+		unsafeConvert.Itoa(len(data.PrizeList)) + data.BlockHash
 
-	seedHash := sha512.Sum512([]byte(seedData))
+	sha := sha3.New512()
+	sha.Write([]byte(seedData))
+	seedHash := sha.Sum(nil)
 
 	return hex.EncodeToString(seedHash[:])
 }
