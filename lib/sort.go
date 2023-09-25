@@ -1,5 +1,5 @@
-//go:build internel
-// +build internel
+//go:build !internel
+// +build !internel
 
 package dom
 
