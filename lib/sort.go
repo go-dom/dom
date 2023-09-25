@@ -5,7 +5,7 @@ package dom
 
 import "golang.org/x/exp/slices"
 
-func sortUserIDs[E []T, T string | int64](userIDs E) {
+func sort[E []T, T string | int64](userIDs E) {
 	slices.Sort(userIDs)
 }
 

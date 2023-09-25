@@ -25,7 +25,7 @@ func (data LotteryData[E, T]) calculateInitialSeed() string {
 	seedData := litefmt.PSprint(data.LotteryID, unsafeConvert.Itoa(len(data.UserIDs)),
 		unsafeConvert.Itoa(len(data.PrizeList)), data.BlockHash)
 
-	seedHash := hmac.Shake256S(seedData, 256)
+	seedHash := hmac.Shake256S(seedData, 142)
 
 	return hex.EncodeToString(seedHash[:])
 }
@@ -40,11 +40,11 @@ func (data LotteryData[E, T]) calculateWinners(seed string) []WinnerPrizePair[T]
 		for {
 			index := seedBigInt.Mod(seedBigInt, num).Int64()
 			winner = data.UserIDs[index]
-			sortUserIDs(winners)
+			sort(winners)
 			if !data.isWinner(winner, winners) {
 				break
 			}
-			hash := hmac.Shake256S(seed, 256)
+			hash := hmac.Shake256S(seed, 188)
 			seed = hex.EncodeToString(hash[:])
 
 			seedBigInt.SetString(seed, 16)
@@ -53,6 +53,8 @@ func (data LotteryData[E, T]) calculateWinners(seed string) []WinnerPrizePair[T]
 	}
 
 	var pairs []WinnerPrizePair[T]
+
+	sort(data.PrizeList)
 
 	for i, winner := range winners {
 		pair := WinnerPrizePair[T]{
@@ -73,7 +75,7 @@ func (data LotteryData[E, T]) DrawLottery() []WinnerPrizePair[T] {
 	if len(data.UserIDs) < len(data.PrizeList)*2 {
 		return nil
 	}
-	sortUserIDs(data.UserIDs)
+	sort(data.UserIDs)
 	initialSeed := data.calculateInitialSeed()
 	return data.calculateWinners(initialSeed)
 }
