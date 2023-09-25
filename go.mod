@@ -4,7 +4,7 @@ go 1.21.1
 
 require (
 	github.com/3JoB/ethclient v1.0.0
-	github.com/3JoB/ulib v1.32.0
+	github.com/3JoB/ulib v1.35.0
 	github.com/3JoB/ulid v0.0.2
 	github.com/3JoB/unsafeConvert v1.6.0
 	github.com/google/uuid v1.3.0
