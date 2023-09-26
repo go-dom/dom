@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/3JoB/ulib/hash/hmac"
-	"github.com/3JoB/ulib/hex"
 	"github.com/3JoB/ulib/litefmt"
 	"github.com/3JoB/unsafeConvert"
 )
@@ -24,10 +23,7 @@ type WinnerPrizePair[T string | int64] struct {
 func (data LotteryData[E, T]) calculateInitialSeed() string {
 	seedData := litefmt.PSprint(data.LotteryID, unsafeConvert.Itoa(len(data.UserIDs)),
 		unsafeConvert.Itoa(len(data.PrizeList)), data.BlockHash)
-
-	seedHash := hmac.Shake256S(seedData, 142)
-
-	return hex.EncodeToString(seedHash[:])
+	return hmac.Shake256S(seedData, 142)
 }
 
 func (data LotteryData[E, T]) calculateWinners(seed string) []WinnerPrizePair[T] {
@@ -40,13 +36,10 @@ func (data LotteryData[E, T]) calculateWinners(seed string) []WinnerPrizePair[T]
 		for {
 			index := seedBigInt.Mod(seedBigInt, num).Int64()
 			winner = data.UserIDs[index]
-			sort(winners)
 			if !data.isWinner(winner, winners) {
 				break
 			}
-			hash := hmac.Shake256S(seed, 188)
-			seed = hex.EncodeToString(hash[:])
-
+			seed = hmac.Shake128S(seed, 32)
 			seedBigInt.SetString(seed, 16)
 		}
 		winners = append(winners, winner)

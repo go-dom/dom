@@ -1,110 +1,86 @@
 package dom
 
 import (
-	"fmt"
+	"time"
 
-	errs "github.com/3JoB/ulib/err"
+	"github.com/3JoB/ulib/hash/hmac"
+	"github.com/3JoB/ulib/litefmt"
+	"github.com/3JoB/ulid"
+	"github.com/google/uuid"
+	"lukechampine.com/frand"
 )
 
-type SessionInfo struct {
-	Block     string        `json:"block_hash"` // Block Hash
-	Lotteryid string        `json:"lottery_id"` // Lottery ID, if there is no one, you can call `NewLotteryID()` to generate one.
-	UserNum   int           `json:"user_num"`   // Number of participants
-	PrizeNum  int           `json:"prize_num"`  // Quantity of prizes
-	UserID    []UserResults `json:"joined"`     // All user IDs participating in the sweepstakes
-	Results   []UserResults `json:"results"`    // Winners
+type DBroke[E []T, T string | int64] struct {
+	data *LotteryData[E, T]
 }
 
-type UserResults struct {
-	UserID   int64  `json:"user_id"`
-	UserHash string `json:"user_hash"`
+func NewString() *DBroke[[]string, string] {
+	return &DBroke[[]string, string]{
+		data: &LotteryData[[]string, string]{
+			PrizeList: make([]string, 1),
+			UserIDs:   make([]string, 2),
+		},
+	}
 }
 
-const Version string = "2.0.0"
-
-var ErrDataEmpty error = &errs.Err{Op: "dom", Err: "data can not be empty!"}
-var ErrLess error = &errs.Err{Op: "dom", Err: "The number of prizes cannot be less than the number of participants!"}
-var ErrMoreRetry error = &errs.Err{Op: "dom", Err: "Unable to correctly generate winnerid, and too many retries, this operation has been terminated."}
-var ErrPrizeNum error = &errs.Err{Op: "dom", Err: "TIncorrect number of prizes"}
-var ErrUserNum error = &errs.Err{Op: "dom", Err: "Incorrect number of users"}
-
-// Calculation draw results
-func (session *Session) Do() (SessionInfo, error) {
-	sessionInfo := SessionInfo{}
-
-	if session.Lotteryid == "" {
-		session.NewLotteryID()
+func NewInt64() *DBroke[[]int64, int64] {
+	return &DBroke[[]int64, int64]{
+		data: &LotteryData[[]int64, int64]{
+			PrizeList: make([]string, 1),
+			UserIDs:   make([]int64, 2),
+		},
 	}
-	if session.PrizeNum >= session.UserNum {
-		return sessionInfo, ErrLess
-	}
-	if session.PrizeNum < 1 {
-		return sessionInfo, ErrPrizeNum
-	}
-	if session.UserNum < 1 {
-		return sessionInfo, ErrUserNum
-	}
-	session.buildHash64()
-	userlist := session.ids()
-	if err := session.blockHash(); err != nil {
-		return sessionInfo, err
-	}
-	sessionInfo.Block = session.d.blockhash
+}
 
-	session.seeds()
-	session.getUser()
-	retry := 0
-
-Retrys:
-	if retry > 4 {
-		if session.client.Debug {
-			fmt.Printf("UserHashs: %v\nUserList: %v\n", session.d.hashids, userlist)
-			fmt.Printf("BlockHash: %v\nSeed: %v\n", session.d.blockhash, session.d.seed)
-		}
-		return sessionInfo, ErrMoreRetry
+func (b *DBroke[E, T]) NewLotteryID() {
+	uid, err := ulid.New(ulid.Timestamp(time.Now()), frand.New())
+	id := ""
+	if err != nil {
+		id = uuid.NewString()
+	} else {
+		id = uid.String()
 	}
+	b.SetLotteryID(id)
+}
 
-	if session.d.winnernum == 0 {
-		session.getUser()
-		retry++
-		goto Retrys
-	} else if session.d.winnernum != session.PrizeNum {
-		session.getUser()
-		retry++
-		goto Retrys
+func (b *DBroke[E, T]) SetUsers(data E) *DBroke[E, T] {
+	b.data.UserIDs = data
+	return b
+}
+
+func (b *DBroke[E, T]) SetBlock(data string) *DBroke[E, T] {
+	b.data.BlockHash = litefmt.PSprint("0x", hmac.Shake128S(data, 64))
+	return b
+}
+
+func (b *DBroke[E, T]) SetLotteryID(data string) *DBroke[E, T] {
+	b.data.LotteryID = litefmt.PSprint("2x", hmac.Shake128S(data, 64))
+	return b
+}
+
+func (b *DBroke[E, T]) SetPrizes(data []string) *DBroke[E, T] {
+	b.data.PrizeList = data
+	return b
+}
+
+func (b *DBroke[E, T]) AddUser(data T) *DBroke[E, T] {
+	b.data.UserIDs = append(b.data.UserIDs, data)
+	return b
+}
+
+func (b *DBroke[E, T]) AddPrize(data string) *DBroke[E, T] {
+	b.data.PrizeList = append(b.data.PrizeList, data)
+	return b
+}
+
+func (b *DBroke[E, T]) ExportData() *LotteryData[E, T] {
+	return b.data
+}
+
+func (b *DBroke[E, T]) Do() ([]WinnerPrizePair[T], bool) {
+	pair := b.data.DrawLottery()
+	if len(pair) < 1 {
+		return nil, false
 	}
-
-	retry = 0
-
-	winnersID := make([]int, 0, session.d.winnernum)
-	for _, winner := range session.d.winners {
-		for i, userID := range userlist {
-			if userID == winner {
-				winnersID = append(winnersID, i)
-				break
-			}
-		}
-	}
-
-	sessionInfo.Results = make([]UserResults, 0, session.PrizeNum)
-	for _, winnerID := range winnersID {
-		if session.hash(session.UserID[winnerID]) == session.d.hashids[winnerID] {
-			sessionInfo.Results = append(sessionInfo.Results, UserResults{UserID: session.UserID[winnerID], UserHash: session.d.hashids[winnerID]})
-		} else {
-			for _, t := range session.UserID {
-				if session.hash(t) == session.d.hashids[winnerID] {
-					sessionInfo.Results = append(sessionInfo.Results, UserResults{UserID: session.UserID[winnerID], UserHash: session.d.hashids[winnerID]})
-					break
-				}
-			}
-		}
-	}
-
-	if session.client.Debug {
-		fmt.Printf("UserHashs: %v\nUserList: %v\n", session.d.hashids, userlist)
-		fmt.Printf("BlockHash: %v\nSeed: %v\n", session.d.blockhash, session.d.seed)
-		fmt.Printf("Winners: %v\nWinnersID: %v\nTheWinners: %v\n", session.d.winners, winnersID, sessionInfo.Results)
-	}
-
-	return sessionInfo, nil
+	return pair, true
 }
