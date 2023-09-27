@@ -39,7 +39,7 @@ func (data LotteryData[E, T]) calculateWinners(seed string) []WinnerPrizePair[T]
 			if !data.isWinner(winner, winners) {
 				break
 			}
-			seed = hmac.Shake128S(seed, 32)
+			seed = hmac.Shake128S(seed, 64)
 			seedBigInt.SetString(seed, 16)
 		}
 		winners = append(winners, winner)

@@ -49,7 +49,7 @@ func (b *DBroke[E, T]) SetUsers(data E) *DBroke[E, T] {
 }
 
 func (b *DBroke[E, T]) SetBlock(data string) *DBroke[E, T] {
-	b.data.BlockHash = litefmt.PSprint("0x", hmac.Shake128S(data, 64))
+	b.data.BlockHash = litefmt.PSprint("0x", hmac.Shake128S(data, 128))
 	return b
 }
 
